@@ -1,36 +1,26 @@
-(define (random-k-digit-number k)
-  (define (iter counter num)
-    (if (> counter 0)
-      (iter
-	(- counter 1)
-	(+ num
-	   (* (expt
-		10
-		(- counter 1))
-	      (random 10))))
-      num))
-  (iter k 0))
+(load "prime-utils")
 
-(define random-k-digit-prime
-  (lambda (k)
-    (let ((p (random-k-digit-number k)))
-      (if (prime? p)
-	p
-	(random-k-digit-prime k)))))
+;; Check if the elements of a list
+;; 'items' are all distinct (from sicp)
+(define (distinct? items)
+  (cond ((null? items) true)
+	((null? (cdr items)) true)
+	((member (car items) (cdr items)) false)
+	(else (distinct? (cdr items)))))
 
-(define prime-test-iterations 20)
+(define (generate-rand-list n p)
+  (let lp ((rand-list '())
+	   (n n))
+    (if (= n 0)
+      (if (distinct? rand-list)
+	rand-list
+	(generate-rand-list n p))
+      (lp
+	(cons
+	  (random p)
+	  rand-list)
+	(- n 1)))))
 
-(define prime?
-  (lambda (p)
-    (define (prime-iter pr count)
-      (cond ((= count 0) #t)
-	    ((< pr 2) #f)
-	    (else
-	      (let ((r (big-random pr)))
-		(if (= ((exptmod pr) r pr) (modulo r pr))
-		  (prime-iter pr (- count 1))
-		  #f)))))
-    (prime-iter p prime-test-iterations)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;              POLYNOMIALS                   ;;;
@@ -66,35 +56,25 @@
 	    (cdr coeffs)
 	    (+ value (* (expt num n) (car coeffs))))))))
 
-;; Check if the elements of a list
-;; 'items' are all distinct (from sicp)
-(define (distinct? items)
-  (cond ((null? items) true)
-	((null? (cdr items)) true)
-	((member (car items) (cdr items)) false)
-	(else (distinct? (cdr items)))))
-
 ;; Convert a polynomial 'poly'
 ;; from coefficients into point-value
 ;; notation meaning a list of n+1
 ;; pairs (a, b) where p(a) = b
 (define point-value-poly
-  (lambda (poly p)
-    (share-t poly (length poly) p)))
+  (lambda (poly eval-points p)
+    (share-t poly eval-points p)))
 
 ;; Divide a polynomial into t
 ;; shares of information.
 (define share-t
-  (lambda (poly t p)
+  (lambda (poly eval-points p)
     (let lp ((points '())
-	     (n t))
-      (if (= n 0)
-	(if (distinct? points)
-	  points
-	  (point-value-poly poly p))
-	(let* ((a (+ 1 (random (- p 1))))
+	     (eval-points eval-points))
+      (if (eq? eval-points '())
+	points
+	(let* ((a (car eval-points))
 	       (b (modulo (poly-eval poly a p) p)))
-	  (lp (cons (cons a b) points) (- n 1)))))))
+	  (lp (cons b points) (cdr eval-points)))))))
 
 
 ;; Convert a polynomial from point-value
@@ -135,4 +115,21 @@
 	      (list-sum (cdr a) (cdr b))
 	    )))
     (cons 'poly (list-sum (cdr poly-a) (cdr poly-b)))))
+
+;;Add the point representation of two polynomial
+(define points-add 
+  (lambda (points-a points-b)
+    (let lp ((points-a points-a)
+	     (points-b points-b))
+	     (if (eq? points-a '())
+	       '()
+	     (let* ((head-a (car points-a))
+		   (head-b (car points-b))
+		   (eval-point-a (car head-a))
+		   (eval-point-b (car head-b)))
+	       (if (eq? eval-point-a eval-point-b)
+		 (cons (cons eval-point-a
+			     (+ (cdr head-a) (cdr head-b)))
+		       (lp (cdr points-a) (cdr points-b)))
+		 (error "Incompatible representation!")))))))
 

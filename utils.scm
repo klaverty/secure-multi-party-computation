@@ -8,6 +8,8 @@
 	((member (car items) (cdr items)) false)
 	(else (distinct? (cdr items)))))
 
+;; Generate a list of n distinct random
+;; numbers in the range 0 to p-1.
 (define (generate-rand-list n p)
   (let lp ((rand-list '())
 	   (n n))

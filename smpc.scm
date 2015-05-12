@@ -2,15 +2,26 @@
 ;; Secure Multi-Party Computation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; A type for a person using the
+;; system. Each player has a single
+;; attribute 'info' which is an a-list
+;; that contains all of his/her
+;; information about the computation
+;; to be made including his/her
+;; input and any messages from
+;; other players.
 (define-record-type player
   (make-player info)
   player?
   (info get-info set-info!))
 
+;; Retreive the value associated with
+;; a given tag from a player.
 (define (get-player-info player tag)
   (assq tag (get-info player)))
  
-
+;; Set the value for a given tag in
+;; the info a-list for a player.
 (define (set-player-info! player tag value)
   (let ((p (assq tag (get-info player))))
     (if p
@@ -19,6 +30,9 @@
 		 (cons (cons tag value)
 		       (get-info player))))))
 
+;; Append the value to the existing
+;; value for a given tag in the
+;; info a-list for a player.
 (define (append-player-info! player tag value)
   (let ((p (assq tag (get-info player))))
     (if p
@@ -27,16 +41,21 @@
 		 (cons (list tag value)
 		       (get-info player))))))
 
+;; Simulate the receipt of a message.
+;; The player adds the message
+;; to his/her info a-list.
 (define (receive receiver message)
   (let ((tag (car message))
 	(value (cadr message)))
     (append-player-info! receiver tag value)))
 
+;; Simulate the process of sending 
+;; a message to another player.
 (define (send receiver message)
   (receive receiver message))
 
-;;(define players '())
-
+;; Make a group of players with no
+;; information.
 (define (make-multiparty n)
   (let lp ((multiparty '())
 	   (n n))
@@ -45,9 +64,9 @@
       (lp (cons (make-player '())
 		multiparty)
 	  (- n 1)))))
-	  
 
-
+;; Compute the sum of inputs for a
+;; given multiparty.
 (define distributed-sum
   (lambda (multiparty)
     (define prime (random-k-digit-prime 3))
@@ -93,7 +112,3 @@
 		 (cons (car rand-list)
 		       (apply + (append p_shares r_shares)))
 		 points)))))))
-	  	
-
-;;(define smpc-system
-;;  (lambda (n p)

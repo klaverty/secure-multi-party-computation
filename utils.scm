@@ -117,8 +117,8 @@
 ;; numbers in the range 0 to p-1.
 (define (generate-rand-list n p)
   (let lp ((rand-list '())
-	   (n n))
-    (if (= n 0)
+	   (k n))
+    (if (= k 0)
       (if (distinct? rand-list)
 	rand-list
 	(generate-rand-list n p))
@@ -126,7 +126,7 @@
 	(cons
 	  (random p)
 	  rand-list)
-	(- n 1)))))
+	(- k 1)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -192,7 +192,7 @@
 (define reconstruct-poly
   (lambda (point-pairs x p)
     ;;modular inverse in Z_p
-    (define (mod-inv  p)
+    (define (mod-inv p)
       (lambda (a)
       (modulo (expt a (- p 2)) p)))
 
